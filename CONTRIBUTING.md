@@ -16,22 +16,20 @@ Created this guide to ensure all members contribute effectively and follow best 
 
 ## Getting Started
 
-1. **Fork the Repository**
+1. **Clone the Repository**
 
-   - Click the **"Fork"** button at the top right of the repository page.
+   - Clone the repository to your local machine.
 
-2. **Clone Your Fork**
+2. **Create a Virtual Environment if needed**
 
-3. **Set Up Upstream Remote**
-
-4. **Install Dependencies**
+3. **Install Dependencies**
    - pip install -r requirements.txt
 
 ## Branching Strategy
 
 1. **Main Branch**
 
-   - We will be not be merging to main without approval and code reviews from others. Also, any feature or bug fix to be worked on in repective branches.
+   - We will not be merging to 'main' without approval and code reviews from others. Also, any feature or bug fix to be worked on in respective branches.
 
 2. **New Feature Branch**
 
@@ -65,4 +63,4 @@ Created this guide to ensure all members contribute effectively and follow best 
 
 ## Communication
 
-    - Apart from our teams and whatsApp channel, have enabled the discussions in Git. Please feel free to post there any ideas, Issues and/or status updates on the project.
+- Apart from our teams and whatsApp channel, have enabled the discussions in Git. Please feel free to post there any ideas, Issues and/or status updates on the project.
