@@ -129,6 +129,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+ayman_venv/
+catboost_info
 
 # Spyder project settings
 .spyderproject
