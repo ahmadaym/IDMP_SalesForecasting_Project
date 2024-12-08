@@ -1,0 +1,25 @@
+model_parameters:
+  Random Forest Regressor:
+    max_depth: [5, 10, 15, 20, 25, 30]
+    max_features: [null, "sqrt"]
+    min_samples_split: [2, 5, 10, 15, 100]
+    min_samples_leaf: [1, 2, 5, 10]
+
+  LGBM Regressor:
+    n_estimators: { "dist": "randint", "low": 100, "high": 150 }
+    learning_rate: { "dist": "uniform", "low": 0.03, "width": 0.3 }
+    max_depth: { "dist": "randint", "low": 2, "high": 6 }
+    subsample: { "dist": "uniform", "low": 0.6, "width": 0.4 }
+
+  XGB Regressor:
+    n_estimators: { "dist": "randint", "low": 100, "high": 150 }
+    learning_rate: { "dist": "uniform", "low": 0.03, "width": 0.3 }
+    max_depth: { "dist": "randint", "low": 2, "high": 6 }
+    subsample: { "dist": "uniform", "low": 0.6, "width": 0.4 }
+    gamma: { "dist": "uniform", "low": 0.0, "width": 0.5 }
+
+  CatBoost Regressor:
+    n_estimators: { "dist": "randint", "low": 100, "high": 150 }
+    learning_rate: { "dist": "uniform", "low": 0.03, "width": 0.3 }
+    depth: { "dist": "randint", "low": 2, "high": 6 }
+    subsample: { "dist": "uniform", "low": 0.6, "width": 0.4 }
