@@ -1,3 +1,4 @@
+# Import required libraries for data processing, visualization, and machine learning
 import pandas as pd
 import numpy as np
 import datetime
@@ -6,10 +7,12 @@ from dash import html, dcc, dash_table
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
+# **Initial EDA (Exploratory Data Analysis)**
 def initial_eda(sales_data):
     buffer = []
-    buffer.append(html.P(f'DataFrame Shape: {sales_data.shape}'))
+    buffer.append(html.P(f'DataFrame Shape: {sales_data.shape}')) # Display shape of the DataFrame
 
+    # Display data types and count of non-null values for each column
     info = sales_data.dtypes.to_frame('Data Type')
     info['Data Type'] = info['Data Type'].astype(str)
     info['Non-Null Count'] = sales_data.notnull().sum()
@@ -19,6 +22,7 @@ def initial_eda(sales_data):
         style_table={'overflowX': 'auto'}
     ))
 
+    # Display count of missing (null) values for each column
     null_counts = sales_data.isnull().sum()
     buffer.append(html.H4('Null Values in Each Column'))
     buffer.append(dash_table.DataTable(
@@ -27,9 +31,11 @@ def initial_eda(sales_data):
         style_table={'overflowX': 'auto'}
     ))
 
+    # Display count of duplicate rows
     duplicates = sales_data.duplicated().sum()
     buffer.append(html.P(f'Duplicate Rows in Dataset: {duplicates}'))
 
+    # Display statistical summary of numerical features
     summary = sales_data.describe()
     buffer.append(html.H4('Statistical Summary'))
     buffer.append(dash_table.DataTable(
@@ -38,7 +44,7 @@ def initial_eda(sales_data):
         style_table={'overflowX': 'auto'}
     ))
 
-    # Show missing value percentages
+    # Plot percentage of missing values for each column
     missing_percent = (sales_data.isnull().sum() / len(sales_data)) * 100
     missing_percent = missing_percent[missing_percent > 0].sort_values(ascending=False)
     if not missing_percent.empty:
@@ -48,9 +54,12 @@ def initial_eda(sales_data):
         fig_missing_bar.update_layout(xaxis_title='Percentage', yaxis_title='Feature')
         buffer.append(dcc.Graph(figure=fig_missing_bar))
 
-    return html.Div(buffer)
+    return html.Div(buffer) # Return all EDA components as a layout
 
+# **Generate Pre-Cleaning Plots**
 def generate_pre_cleaning_plots(sales_data):
+    """Generates exploratory visualizations for key features before cleaning, 
+    including histograms and a heatmap of missing values."""
     plots = []
 
     # Distribution of Item Fat Content
@@ -70,7 +79,10 @@ def generate_pre_cleaning_plots(sales_data):
 
     return plots
 
+# **Advanced Pre-Cleaning Plots**
 def generate_advanced_pre_cleaning_plots(sales_data):
+    """Generates advanced exploratory plots, including correlation heatmaps, scatter matrices, 
+    and boxplots to visualize outliers."""
     plots = []
     numeric_cols = sales_data.select_dtypes(include=np.number).columns.tolist()
     if 'Item_Outlet_Sales' in numeric_cols:
@@ -100,38 +112,41 @@ def generate_advanced_pre_cleaning_plots(sales_data):
 
     return plots
 
+# **Data Cleaning**
 def perform_data_cleaning(sales_data, log_transform_target=False, outlier_cap=True):
-
-    # Fill missing Item_Weight
+    """Cleans the dataset by handling missing values, normalizing 'Item_Fat_Content', 
+    adding new features, and capping outliers in 'Item_Outlet_Sales'."""
+    
+    # Fill missing values for 'Item_Weight' using item-specific averages
     Item_Weight_Mean = sales_data.pivot_table(values='Item_Weight', index='Item_Identifier', aggfunc='mean')
     item_weight_map = Item_Weight_Mean['Item_Weight'].to_dict()
     overall_mean_weight = sales_data["Item_Weight"].mean()
     sales_data["Item_Weight"] = sales_data["Item_Weight"].fillna(sales_data["Item_Identifier"].map(item_weight_map)).fillna(overall_mean_weight)
 
-    # Fill missing Outlet_Size
+    # Fill missing 'Outlet_Size' using most frequent size per 'Outlet_Type'
     outlet_size_mode = sales_data.pivot_table(values='Outlet_Size', columns='Outlet_Type', aggfunc=(lambda x: x.mode()[0] if len(x.mode()) > 0 else np.nan))
     missing_bool = sales_data['Outlet_Size'].isna()
     sales_data.loc[missing_bool, 'Outlet_Size'] = sales_data.loc[missing_bool, 'Outlet_Type'].apply(lambda x: outlet_size_mode[x])
 
-    # Replace zeros in Item_Visibility with mean
+    # Replace zeros in 'Item_Visibility' with mean value
     item_visibility_overall_mean = sales_data["Item_Visibility"].replace(0, np.nan).mean()
     sales_data["Item_Visibility"] = sales_data["Item_Visibility"].replace(0, item_visibility_overall_mean)
 
-    # Standardize Item_Fat_Content
+    # Standardize 'Item_Fat_Content' values
     sales_data["Item_Fat_Content"] = sales_data["Item_Fat_Content"].replace({'LF': 'Low Fat', 'low fat': 'Low Fat', 'reg': 'Regular'})
 
-    # Add Product_Category
+    # Add 'Product_Category' feature from 'Item_Identifier'
     sales_data["Product_Category"] = sales_data["Item_Identifier"].str[:2]
     sales_data["Product_Category"] = sales_data["Product_Category"].replace({'FD': 'Food Item', 'NC': 'Non Consumable', 'DR': 'Drink'})
 
-    # Reclassify Non-Consumables
+    # Update 'Item_Fat_Content' for non-consumable items
     sales_data.loc[sales_data['Product_Category'] == 'Non Consumable', 'Item_Fat_Content'] = 'Non Edible'
 
-    # Calculate Outlet Age
+    # Calculate 'Outlet_Years' as the number of years since outlet establishment
     current_year = datetime.datetime.now().year
     sales_data['Outlet_Years'] = current_year - sales_data['Outlet_Establishment_Year']
 
-    # Additional Cleaning: Outlier capping for target (e.g., 99th percentile)
+    # Additional Cleaning: Outlier capping for target (99th percentile)
     if 'Item_Outlet_Sales' in sales_data.columns and outlier_cap:
         cap_val = sales_data['Item_Outlet_Sales'].quantile(0.99)
         sales_data['Item_Outlet_Sales'] = np.where(sales_data['Item_Outlet_Sales'] > cap_val, cap_val, sales_data['Item_Outlet_Sales'])
@@ -142,7 +157,10 @@ def perform_data_cleaning(sales_data, log_transform_target=False, outlier_cap=Tr
 
     return sales_data
 
+# **Post-Cleaning Plots**
 def generate_post_cleaning_plots(sales_data):
+    """Generates exploratory visualizations for key features after data cleaning, 
+    highlighting the impact of the cleaning process."""
     plots = []
 
     # Distribution of Item Fat Content after cleaning
@@ -186,7 +204,10 @@ def generate_post_cleaning_plots(sales_data):
 
     return plots
 
+# **Advanced Post-Cleaning Plots**
 def generate_advanced_post_cleaning_plots(original_data, cleaned_data):
+    """Generates plots to visualize the differences between the original and cleaned datasets, 
+    highlighting the impact of cleaning and showing advanced visualizations."""
     plots = []
     # Compare distributions before and after cleaning for Item_Outlet_Sales
     if 'Item_Outlet_Sales' in original_data.columns and 'Item_Outlet_Sales' in cleaned_data.columns:
@@ -219,12 +240,16 @@ def generate_advanced_post_cleaning_plots(original_data, cleaned_data):
 
     return plots
 
+# **Preprocess Data for Modeling**
 def preprocess_data(sales_data):
-    # Label Encoding
+    """Preprocesses the cleaned sales data by label encoding categorical variables, 
+    one-hot encoding key features, and splitting the data into training and testing sets."""
+
+    # **Label Encode 'Outlet' using the 'Outlet_Identifier'**
     label_encoder = LabelEncoder()
     sales_data["Outlet"] = label_encoder.fit_transform(sales_data["Outlet_Identifier"])
 
-    # Encode categorical variables
+    # **Encode all categorical columns except 'Item_Identifier' and 'Outlet_Identifier'**
     categorical_columns = sales_data.select_dtypes(include=['object']).columns.tolist()
     if 'Item_Identifier' in categorical_columns:
         categorical_columns.remove('Item_Identifier')
@@ -240,12 +265,12 @@ def preprocess_data(sales_data):
         if c in sales_data.columns:
             sales_data = pd.get_dummies(sales_data, columns=[c], drop_first=False)
 
-    # Features and target
+    # **Separate Features (X) and Target (y)**
     X = sales_data.drop(['Item_Identifier', 'Outlet_Identifier', 'Outlet_Establishment_Year', 'Item_Outlet_Sales'], axis=1)
     y = sales_data['Item_Outlet_Sales']
     feature_names = X.columns
 
-    # Split data
+    # **Split the Data into Train and Test Sets**
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=10)
 
     return X_train, X_test, y_train, y_test, feature_names

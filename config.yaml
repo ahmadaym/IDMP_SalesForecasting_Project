@@ -1,3 +1,7 @@
+# **Model Hyperparameter Configuration**
+# This YAML file defines the hyperparameter tuning space for machine learning models.
+# Each model has its own set of hyperparameters with specific ranges or distributions.
+# These parameters are used during hyperparameter tuning to find the best configuration for each model.
 model_parameters:
   Random Forest Regressor:
     max_depth: [5, 10, 15, 20, 25, 30]

@@ -1,3 +1,4 @@
+# Import necessary libraries for data manipulation, visualization, web app development, and machine learning
 import base64
 import io
 import pickle
@@ -5,7 +6,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-
 from flask import Flask
 from dash import Dash, dcc, html, Input, Output, State, dash_table, no_update, callback_context
 import dash_bootstrap_components as dbc
@@ -13,6 +13,7 @@ import dash
 from plotly.subplots import make_subplots
 from sklearn.preprocessing import StandardScaler
 
+# Import custom functions for data processing and modeling from local files
 from src.data_process.data_processing import (
     initial_eda,
     generate_pre_cleaning_plots,
@@ -24,7 +25,10 @@ from src.data_process.data_processing import (
 )
 from src.models.modeling import get_models, train_selected_model
 
+# Initialize Flask server to be used with Dash
 server = Flask(__name__)
+
+# Configure the Dash app with an external stylesheet and enable URL-based page routing
 app = Dash(
     __name__, 
     server=server, 
@@ -33,7 +37,7 @@ app = Dash(
     external_stylesheets=[dbc.themes.LITERA]
 )
 
-
+# Define a custom loading spinner with a message for user feedback during long processes
 app.index_string = '''
 <!DOCTYPE html>
 <html>
@@ -69,9 +73,11 @@ app.index_string = '''
 </html>
 '''
 
-models = get_models()
+# Placeholder for models to be initialized later
+models = None
 
-# Page Layouts
+# **Page Layouts**
+# Upload page layout for file upload functionality
 upload_layout = dbc.Card([
     dbc.CardHeader("Upload Your Data", className="bg-primary text-white"),
     dbc.CardBody([
@@ -89,7 +95,7 @@ upload_layout = dbc.Card([
                 'textAlign': 'center',
                 'margin': '10px 0'
             },
-            multiple=False
+            multiple=False # Only a single file can be uploaded at a time
         ),
         html.Div(id='upload-status'),
         html.Br(),
@@ -97,6 +103,7 @@ upload_layout = dbc.Card([
     ])
 ], className="mb-4")
 
+# EDA (Exploratory Data Analysis) page layout
 eda_layout = html.Div([
     dbc.Card([
         dbc.CardHeader("Exploratory Data Analysis", className="bg-primary text-white"),
@@ -109,6 +116,7 @@ eda_layout = html.Div([
     ])
 ])
 
+# Data Cleaning page layout
 cleaning_layout = html.Div([
     dbc.Card([
         dbc.CardHeader("Data Cleaning", className="bg-primary text-white"),
@@ -124,6 +132,7 @@ cleaning_layout = html.Div([
     ])
 ])
 
+# Model Training page layout
 modeling_layout = html.Div([
     dbc.Card([
         dbc.CardHeader("Model Training", className="bg-primary text-white"),
@@ -140,6 +149,7 @@ modeling_layout = html.Div([
     ])
 ])
 
+# Results & Downloads page layout
 results_layout = html.Div([
     dbc.Card([
         dbc.CardHeader("Results & Downloads", className="bg-primary text-white"),
@@ -154,7 +164,8 @@ results_layout = html.Div([
     ])
 ], className="mb-4")
 
-# About Us Modal
+# **About Us Modal**
+# Pop-up modal with information about the development team
 about_modal = dbc.Modal(
     [
         dbc.ModalHeader("About Our Team"),
@@ -171,20 +182,20 @@ about_modal = dbc.Modal(
     is_open=False,
 )
 
+# Main layout that includes a navigation bar, steps, and page layouts
 app.layout = dbc.Container(fluid=True, children=[
-    dcc.Store(id='original-data-store'),
-    dcc.Store(id='cleaned-data-store'),
-    dcc.Store(id='eda-completed', data=False),
-    dcc.Store(id='cleaning-completed', data=False),
-    dcc.Store(id='modeling-completed', data=False),
-    dcc.Store(id='best-model-name'),
-    dcc.Store(id='best-model-predictions'),
-    dcc.Store(id='summary-metrics'),
-    dcc.Store(id='model-results-store'),
+    dcc.Store(id='original-data-store'),  # Stores original uploaded data
+    dcc.Store(id='cleaned-data-store'),  # Stores cleaned data after processing
+    dcc.Store(id='eda-completed', data=False),  # Flags if EDA is completed
+    dcc.Store(id='cleaning-completed', data=False),  # Flags if cleaning is completed
+    dcc.Store(id='modeling-completed', data=False),  # Flags if modeling is completed
+    dcc.Store(id='best-model-name'),  # Stores the name of the best model
+    dcc.Store(id='best-model-predictions'),  # Stores predictions of the best model
+    dcc.Store(id='summary-metrics'),  # Stores summary metrics for models
+    dcc.Store(id='model-results-store'),  # Stores all model results for detailed analysis
+    dcc.Location(id='url', refresh=False),  # Tracks URL for navigation between pages
 
-    dcc.Location(id='url', refresh=False),
-
-    # Navbar with About Us link
+    # Navigation bar with "About Us" link
     dbc.Navbar(
         dbc.Container([
             dbc.NavbarBrand("Sales Forecasting", className="ms-2", style={'fontSize': '1.5em', 'fontWeight': 'bold'}),
@@ -195,7 +206,7 @@ app.layout = dbc.Container(fluid=True, children=[
         className="mb-4"
     ),
 
-    about_modal,
+    about_modal, # Include "About Us" modal in layout
 
     dbc.Row([
         dbc.Col([
@@ -222,7 +233,7 @@ app.layout = dbc.Container(fluid=True, children=[
             html.Div(id='modeling-page', children=modeling_layout, style={'display': 'none'}),
             html.Div(id='results-page', children=results_layout, style={'display': 'none'})
         ], width=10)
-    ], style={'marginBottom': '50px'}),  
+    ], style={'marginBottom': '50px'}),  # Add margin bottom to make space for footer
 
     # Footer
     html.Footer("Created by Ayman, Amisha & Ronhit.", style={
@@ -233,7 +244,7 @@ app.layout = dbc.Container(fluid=True, children=[
     })
 ], style={'maxWidth': '95%', 'margin': 'auto'})
 
-
+# Callback to switch between pages based on URL
 @app.callback(
     [Output('upload-page', 'style'),
      Output('eda-page', 'style'),
@@ -243,7 +254,9 @@ app.layout = dbc.Container(fluid=True, children=[
     Input('url', 'pathname')
 )
 def switch_page_display(pathname):
+    # Define the hidden style for inactive pages
     hidden = {'display': 'none'}
+    # Check the URL pathname to determine which page to display
     if pathname in [None, '/', '/upload']:
         return {'display': 'block'}, hidden, hidden, hidden, hidden
     elif pathname == '/eda':
@@ -255,9 +268,10 @@ def switch_page_display(pathname):
     elif pathname == '/results':
         return hidden, hidden, hidden, hidden, {'display': 'block'}
 
+    # Default case - show the upload page
     return {'display': 'block'}, hidden, hidden, hidden, hidden
 
-
+# Callback to enable/disable navigation links between the steps
 @app.callback(
     [Output('nav-eda', 'disabled'),
      Output('nav-cleaning', 'disabled'),
@@ -268,13 +282,16 @@ def switch_page_display(pathname):
      Input('cleaning-completed', 'data'),
      Input('modeling-completed', 'data')]
 )
+
 def update_nav_links(original_data, eda_done, cleaning_done, modeling_done):
-    eda_disabled = not bool(original_data)
-    cleaning_disabled = not bool(eda_done)
-    modeling_disabled = not bool(cleaning_done)
-    results_disabled = not bool(modeling_done)
+    # Control which steps are clickable based on completion of previous steps
+    eda_disabled = not bool(original_data)  # EDA is available after data is uploaded
+    cleaning_disabled = not bool(eda_done)  # Cleaning is available after EDA is complete
+    modeling_disabled = not bool(cleaning_done)  # Modeling is available after cleaning is complete
+    results_disabled = not bool(modeling_done)  # Results are available after modeling is complete
     return eda_disabled, cleaning_disabled, modeling_disabled, results_disabled
 
+# Callback to handle file upload and update the store with the uploaded data
 @app.callback(
     [Output('original-data-store', 'data'),
      Output('upload-status', 'children'),
@@ -284,47 +301,61 @@ def update_nav_links(original_data, eda_done, cleaning_done, modeling_done):
 )
 def handle_file_upload(contents, filename):
     if contents is not None:
+        # Split the contents to retrieve the file data
         content_type, content_string = contents.split(',')
-        decoded = base64.b64decode(content_string)
+        decoded = base64.b64decode(content_string) # Decode the base64 encoded data
         try:
+            # Check if the file is a CSV
             if 'csv' in filename.lower():
-                df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+                df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))  # Convert file contents to DataFrame
                 if 'Item_Outlet_Sales' not in df.columns:
                     return None, dbc.Alert("The CSV must contain 'Item_Outlet_Sales' column.", color="danger"), True
+                
+                # Check if dataset has time column
+                has_time = 'Time' in df.columns
+                global models
+                models = get_models(has_time=has_time) # Load models based on dataset type
 
-                status = dbc.Alert("Data uploaded successfully! Click 'Proceed to EDA' to continue.", color="success")
-                return df.to_dict('records'), status, False
+                status = dbc.Alert(
+                    "Data uploaded successfully! Detected " +
+                    ("time-series data." if has_time else "standard data.") +
+                    " Click 'Proceed to EDA' to continue.",
+                    color="success"
+                )
+                return df.to_dict('records'), status, False  # Update the store with data and enable EDA button
             else:
                 return None, dbc.Alert("Unsupported file format. Please upload a CSV file.", color="danger"), True
-        except Exception:
-            return None, dbc.Alert("Error processing the file.", color="danger"), True
+        except Exception as e:
+            return None, dbc.Alert(f"Error processing the file: {e}", color="danger"), True
     else:
         return None, dbc.Alert("No data uploaded yet.", color="info"), True
 
+# Callback to display the EDA content once data is uploaded
 @app.callback(
     Output('eda-content', 'children'),
     Input('original-data-store', 'data')
 )
 def show_eda(original_data):
     if original_data is not None:
-        df = pd.DataFrame(original_data)
-        eda_results = initial_eda(df)
-        initial_plots = generate_pre_cleaning_plots(df)
-        advanced_plots = generate_advanced_pre_cleaning_plots(df)
+        df = pd.DataFrame(original_data)  # Convert stored data to DataFrame
+        eda_results = initial_eda(df)  # Generate basic EDA results
+        initial_plots = generate_pre_cleaning_plots(df)  # Generate basic visualizations
+        advanced_plots = generate_advanced_pre_cleaning_plots(df)  # Generate advanced EDA visualizations
 
         layout = [
             html.H5("Data Overview"),
-            eda_results,
+            eda_results, # Display tabular overview of the data
             html.Hr(),
             html.H5("Initial Exploratory Visualizations"),
-            html.Div(initial_plots),
+            html.Div(initial_plots), # Display plots for exploratory analysis
             html.H5("Advanced EDA"),
-            html.Div(advanced_plots),
+            html.Div(advanced_plots), # Display advanced visualizations
         ]
-        return layout
+        return layout # Return the layout to be displayed on the page
     else:
         return "Please upload data first."
 
+# Callback to enable the button for proceeding to data cleaning after EDA
 @app.callback(
     Output('proceed-to-cleaning', 'disabled'),
     Input('proceed-to-eda', 'n_clicks'),
@@ -332,20 +363,22 @@ def show_eda(original_data):
 )
 def enable_proceed_to_cleaning(n_clicks, original_data):
     if n_clicks and original_data is not None:
-        return False
+        return False  # Enable the button to move to cleaning if EDA is complete
     return True
 
+# Callback to mark EDA as completed once the button is clicked
 @app.callback(
     Output('eda-completed', 'data'),
     Input('proceed-to-cleaning', 'n_clicks'),
     State('original-data-store', 'data'),
-    prevent_initial_call=True
+    prevent_initial_call=True # Only run this function if button is clicked
 )
 def mark_eda_done(n_clicks, original_data):
     if n_clicks and original_data is not None:
-        return True
+        return True # Indicate that EDA is complete
     return no_update
 
+# Callback to show post-cleaning visuals
 @app.callback(
     Output('post-cleaning-visuals', 'children'),
     Input('perform-cleaning-button', 'n_clicks'),
@@ -353,20 +386,21 @@ def mark_eda_done(n_clicks, original_data):
 )
 def perform_data_cleaning_and_show_visuals(n_clicks, original_data):
     if n_clicks and original_data is not None:
-        df = pd.DataFrame(original_data)
-        cleaned_df = perform_data_cleaning(df.copy())
-        post_cleaning_plots = generate_post_cleaning_plots(cleaned_df)
-        advanced_post_cleaning = generate_advanced_post_cleaning_plots(df, cleaned_df)
+        df = pd.DataFrame(original_data)  # Convert stored data to DataFrame
+        cleaned_df = perform_data_cleaning(df.copy())  # Perform data cleaning
+        post_cleaning_plots = generate_post_cleaning_plots(cleaned_df)  # Generate post-cleaning visualizations
+        advanced_post_cleaning = generate_advanced_post_cleaning_plots(df, cleaned_df)  # Generate advanced visuals
         visuals = [
             html.H5('Post-Cleaning Visualizations'),
-            html.Div(post_cleaning_plots),
+            html.Div(post_cleaning_plots), # Display the visualizations
             html.H5('Additional Post-Cleaning Analysis'),
-            html.Div(advanced_post_cleaning)
+            html.Div(advanced_post_cleaning) # Display additional visuals
         ]
         return visuals
     else:
         return "No cleaning performed yet."
 
+# Callback to store cleaned data
 @app.callback(
     Output('cleaned-data-store', 'data'),
     Input('perform-cleaning-button', 'n_clicks'),
@@ -376,9 +410,10 @@ def store_cleaned_data(n_clicks, original_data):
     if n_clicks and original_data:
         df = pd.DataFrame(original_data)
         cleaned_df = perform_data_cleaning(df.copy())
-        return cleaned_df.to_dict('records')
+        return cleaned_df.to_dict('records')  # Store the cleaned data
     return no_update
 
+# Callback to enable the button for proceeding to modeling after cleaning
 @app.callback(
     Output('proceed-to-modeling', 'disabled'),
     Input('perform-cleaning-button', 'n_clicks'),
@@ -386,9 +421,10 @@ def store_cleaned_data(n_clicks, original_data):
 )
 def enable_modeling(n_clicks, original_data):
     if n_clicks and original_data is not None:
-        return False
+        return False # Enable the button to move to modeling
     return True
 
+# Callback to mark cleaning as completed
 @app.callback(
     Output('cleaning-completed', 'data'),
     Input('proceed-to-modeling', 'n_clicks'),
@@ -396,19 +432,22 @@ def enable_modeling(n_clicks, original_data):
 )
 def mark_cleaning_done(n_clicks, cleaned_data):
     if n_clicks and cleaned_data is not None:
-        return True
+        return True # Indicate that cleaning is complete
     return no_update
 
+# Callback to enable the 'Train All Models' button once cleaning is complete
 @app.callback(
     Output('train-all-models-button', 'disabled'),
     Input('proceed-to-modeling', 'n_clicks'),
     State('cleaned-data-store', 'data')
 )
 def enable_train_button(n_clicks, cleaned_data):
+    # Enable the button only if user has completed cleaning and clicks on 'Proceed to Modeling'
     if n_clicks and cleaned_data is not None:
-        return False
-    return True
+        return False  # Enable the 'Train All Models' button
+    return True  # Disable the button until conditions are met
 
+# Callback to train all models and display the results
 @app.callback(
     [Output('all-models-output', 'children'),
      Output('best-model-name', 'data'),
@@ -419,37 +458,50 @@ def enable_train_button(n_clicks, cleaned_data):
      Output('model-results-store', 'data'),
      Output('modeling-completed', 'data')],
     Input('train-all-models-button', 'n_clicks'),
-    State('cleaned-data-store', 'data')
+    [State('cleaned-data-store', 'data'), State('original-data-store', 'data')]
 )
-def train_all_models(n_clicks, cleaned_data):
+def train_all_models(n_clicks, cleaned_data, original_data):
     if n_clicks and cleaned_data is not None:
+        # Convert stored data to DataFrame
         cleaned_sales_data = pd.DataFrame(cleaned_data)
-        X_train, X_test, y_train, y_test, feature_names = preprocess_data(cleaned_sales_data)
+        original_sales_data = pd.DataFrame(original_data)
 
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        X_train_scaled_df = pd.DataFrame(X_train_scaled, columns=feature_names)
-        X_test_scaled_df = pd.DataFrame(X_test_scaled, columns=feature_names)
+        # Check if this is a time-series dataset
+        is_time_series = 'Time' in original_sales_data.columns
 
-        results_list = []
-        for model_name, model_obj in models.items():
+        if is_time_series:
+            run_models = {'ARIMA': models['ARIMA']} # Only train ARIMA for time-series
+            X_train, X_test, y_train, y_test, feature_names = None, None, None, None, None
+        else:
+            run_models = models # Train all models for non-time-series
+            X_train, X_test, y_train, y_test, feature_names = preprocess_data(cleaned_sales_data)
+            # Scale the feature data to ensure better model performance
+            scaler = StandardScaler()
+            X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=feature_names)
+            X_test = pd.DataFrame(scaler.transform(X_test), columns=feature_names)
+
+        results_list = [] # Store model results
+        for model_name, model_obj in run_models.items():
             results = train_selected_model(
                 model_name,
-                X_train_scaled_df,
+                X_train,
                 y_train,
-                X_test_scaled_df,
+                X_test,
                 y_test,
-                feature_names
+                feature_names,
+                is_time_series=is_time_series,
+                original_data=original_sales_data if is_time_series else None
             )
-            results_list.append((model_name, results))
+            results_list.append((model_name, results)) # Store model name and results
 
+        # Determine best performing model based on R² (Test) score
         best_model_name = None
         best_r2_score = -np.inf
         best_model_predictions = None
         best_model_obj = None
 
         summary_data = []
+        # Identify the best model
         for model_name, res in results_list:
             metrics = res['metrics']
             summary_data.append({
@@ -465,16 +517,17 @@ def train_all_models(n_clicks, cleaned_data):
             if metrics['r2_test'] > best_r2_score:
                 best_r2_score = metrics['r2_test']
                 best_model_name = model_name
-                preds = res['model'].predict(X_test_scaled_df)
-                best_model_predictions = pd.DataFrame({'Actual': y_test, 'Predicted': preds})
+                # Load model object
                 best_model_obj = res['model']
 
         if best_model_obj is not None:
             with open('best_model.pkl', 'wb') as f:
                 pickle.dump(best_model_obj, f)
 
-        summary_df = pd.DataFrame(summary_data)
+        # Create summary DataFrame
+        summary_df = pd.DataFrame(summary_data) # Create DataFrame of model metrics
         metric_cols = ['R² (Test)', 'RMSE (Test)', 'MAE (Test)', 'MAPE (Test)', 'CV R² Mean', 'CV RMSE Mean', 'MedAE (Test)']
+        summary_df[metric_cols] = summary_df[metric_cols].apply(pd.to_numeric, errors='coerce')
         for col in metric_cols:
             summary_df[col] = summary_df[col].apply(lambda x: f"{x:.4f}" if pd.notnull(x) else "NA")
 
@@ -513,7 +566,13 @@ def train_all_models(n_clicks, cleaned_data):
         fig.update_yaxes(title_text="Secondary Metric Scale", secondary_y=True)
 
         cleaned_results = {}
+        # We will store model objects temporarily to handle ARIMA predictions after best model is chosen
+        model_objects = {}
+
         for m_name, res in results_list:
+            # Keep model object separately
+            model_objects[m_name] = res['model']
+            # Remove model object from results before storing
             if 'model' in res:
                 del res['model']
             fig_keys = ['importance_fig', 'residual_fig', 'pred_vs_actual_fig', 'residuals_vs_fitted_fig', 'shap_fig']
@@ -529,6 +588,30 @@ def train_all_models(n_clicks, cleaned_data):
                 res['pdp_figs'] = new_pdp
 
             cleaned_results[m_name] = res
+
+        # After identifying best model, generate predictions for the best model
+        best_res = [r for (name, r) in results_list if name == best_model_name][0]
+        best_model_obj = model_objects[best_model_name]
+
+        if best_model_name == 'ARIMA':
+            # For ARIMA, we do not have X_test. Instead, we have y_test_arima in best_res
+            y_test_arima_values = best_res['y_test_arima']
+            y_test_arima_series = pd.Series(y_test_arima_values)
+            preds = best_model_obj.predict(n_periods=len(y_test_arima_series))
+            best_model_predictions = pd.DataFrame({'Actual': y_test_arima_series, 'Predicted': preds})
+        else:
+            # Non-ARIMA
+            # We re-run preprocess_data since we need X_test and y_test
+            if not is_time_series:
+                X_train, X_test, y_train, y_test, feature_names = preprocess_data(pd.DataFrame(cleaned_data))
+                scaler = StandardScaler()
+                X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=feature_names)
+                X_test = pd.DataFrame(scaler.transform(X_test), columns=feature_names)
+                preds = best_model_obj.predict(X_test)
+                best_model_predictions = pd.DataFrame({'Actual': y_test, 'Predicted': preds})
+            else:
+                # If it's time_series but best is not ARIMA, theoretically should not happen since we only train ARIMA in that scenario
+                best_model_predictions = pd.DataFrame()
 
         tabs_list = []
         for model_name in cleaned_results.keys():
@@ -600,6 +683,7 @@ def train_all_models(n_clicks, cleaned_data):
     else:
         return html.Div(), no_update, no_update, no_update, True, True, no_update, no_update
 
+# Callback to display the results summary and best model
 @app.callback(
     Output('results-content', 'children'),
     Input('modeling-completed', 'data'),
@@ -637,6 +721,7 @@ def download_summary(n_clicks, summary_data):
         df = pd.DataFrame(summary_data)
         return dcc.send_data_frame(df.to_csv, "summary_metrics.csv")
 
+# Callback to enable the button to proceed to the Results page
 @app.callback(
     Output('proceed-to-results', 'disabled'),
     Input('modeling-completed', 'data')
@@ -646,6 +731,7 @@ def enable_proceed_to_results_button(modeling_done):
         return False
     return True
 
+# Callback to handle the navigation between steps of the app
 @app.callback(
     Output('url', 'pathname'),
     [Input('proceed-to-eda', 'n_clicks'),
@@ -656,7 +742,7 @@ def enable_proceed_to_results_button(modeling_done):
      State('eda-completed', 'data'),
      State('cleaning-completed', 'data'),
      State('modeling-completed', 'data')],
-    prevent_initial_call=True
+    prevent_initial_call=True # Only run this function if one of the buttons is clicked
 )
 def navigate_steps(proceed_eda_clicks, proceed_cleaning_clicks, proceed_modeling_clicks, proceed_results_clicks, original_data, eda_done, cleaning_done, modeling_done):
     ctx = callback_context
@@ -675,6 +761,7 @@ def navigate_steps(proceed_eda_clicks, proceed_cleaning_clicks, proceed_modeling
         return '/results'
     return no_update
 
+# Callback to toggle the visibility of the "About Us" modal
 @app.callback(
     Output("about-modal", "is_open"),
     [Input("open-about-modal", "n_clicks"), Input("close-about-modal", "n_clicks")],
@@ -682,8 +769,9 @@ def navigate_steps(proceed_eda_clicks, proceed_cleaning_clicks, proceed_modeling
 )
 def toggle_about_modal(n1, n2, is_open):
     if n1 or n2:
-        return not is_open
+        return not is_open # Toggle the visibility of the modal
     return is_open
 
+# Entry point for the Dash application
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True) # Run the server in debug mode for live updates
