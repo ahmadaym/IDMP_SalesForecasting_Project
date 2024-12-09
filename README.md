@@ -53,8 +53,8 @@ Before running the application, ensure you have the following installed:
 ### Clone from GitHub
 To clone the repository directly from GitHub, ensure you have `git` installed on your system. Then, open your terminal or command prompt and run the following commands:
 
-git clone https://github.com/ahmadaym/IDMP_SalesForecasting_Project.git
-cd IDMP_SalesForecasting_Project
+- git clone https://github.com/ahmadaym/IDMP_SalesForecasting_Project.git
+- cd IDMP_SalesForecasting_Project
 
 ### Download and Extract Project Zip
 Alternatively, you can download the project repository as a ZIP file from GitHub. After downloading, extract the ZIP file to your local machine.
@@ -62,69 +62,54 @@ Alternatively, you can download the project repository as a ZIP file from GitHub
 ### Set Up a Virtual Environment (Recommended)
 Create and activate a virtual environment to manage dependencies:
 
-For Linux/macOS
-python3 -m venv venv
-source venv/bin/activate
+- **For Linux/macOS**
+- python3 -m venv venv
+- source venv/bin/activate
 
-For Windows
-python -m venv venv
-venv\Scripts\activate
+- **For Windows**
+- python -m venv venv
+- venv\Scripts\activate
 
 ### Install Dependencies
-Install the required Python packages using pip:
-pip install -r requirements.txt
+- Install the required Python packages using pip:
+- pip install -r requirements.txt
 
 ## Usage
 ### Run the Application
-Start the Flask application by running:
-python app.py
+- Start the Flask application by running:
+- python app.py
 
 ### Access the Application
 Open your web browser and navigate to http://127.0.0.1:8050/.
 
 ## User Instructions
-1.Upload Data: Navigate to the Upload page to upload your CSV file containing sales data.
-2.Exploratory Data Analysis: Proceed to the EDA page to view data summaries, missing values, and initial visualizations.
-3.Data Cleaning: Move to the Cleaning page to handle missing values, outliers, and perform feature engineering.
-4.Model Training: Go to the Modeling page to train multiple machine learning models and compare their performances.
-5.View Results: Finally, access the Results page to review model performances and download predictions or summary metrics.
+- **Upload Data:** Navigate to the Upload page to upload your CSV file containing sales data.
+- **Exploratory Data Analysis:** Proceed to the EDA page to view data summaries, missing values, and initial visualizations.
+- **Data Cleaning:** Move to the Cleaning page to handle missing values, outliers, and perform feature engineering.
+- **Model Training:** Go to the Modeling page to train multiple machine learning models and compare their performances.
+- **View Results:** Finally, access the Results page to review model performances and download predictions or summary metrics.
 
 ## Project Structure
 The Project folder is organized as follows:
 
-app.py: Main application file to run the Flask and Dash server.
-src/: Contains subdirectories for data processing and modeling.
-data_process/data_processing.py: Scripts for data cleaning and EDA.
-models/modeling.py: Scripts for model training and evaluation.
-requirements.txt: List of Python dependencies.
-README.pdf: Brief overview of project and setup instructions.
-project_technical_report.pdf: Detailed technical report of the project.
+- **app.py:** Main application file to run the Flask and Dash server.
+- **src/:** Contains subdirectories for data processing and modeling.
+- **data_process/data_processing.py:** Scripts for data cleaning and EDA.
+- **models/modeling.py:** Scripts for model training and evaluation.
+- **requirements.txt:** List of Python dependencies.
+- **README.pdf:** Brief overview of project and setup instructions.
+- **project_technical_report.pdf:** Detailed technical report of the project.
 
 ## Dependencies
-Ensure all dependencies in requirements.txt are installed in your virtual environment (venv).
-Some important ones are listed below. If during execution, any seem missing, please use pip install to install them manually.
-
-Flask
-Dash
-dash_bootstrap_components
-pandas
-numpy
-scikit-learn
-plotly
-xgboost
-lightgbm
-catboost
-pmdarima
-shap
-scipy
-yaml
+- Ensure all dependencies in requirements.txt are installed in your virtual environment (venv).
+- If during execution, any seem missing, please use pip install to install them manually.
 
 ## Troubleshooting
-Missing Dependencies: If you encounter ModuleNotFoundError, ensure all dependencies are installed using pip install -r requirements.txt.
-Java Not Installed: Some machine learning libraries like XGBoost require Java. Ensure JDK 8 or higher is installed and JAVA_HOME is set correctly.
-Port Already in Use: If http://127.0.0.1:8050/ is not accessible, ensure no other application is using port 8050 or modify the port in app.py.
-Data Format Issues: Ensure the uploaded CSV contains the required columns, especially the target variable Item_Outlet_Sales.
-For any other issues in running the application, please reach out to Ayman Ahmad (ahmad.ay@northeastern.edu).
+- **Missing Dependencies:** If you encounter ModuleNotFoundError, ensure all dependencies are installed using pip install -r requirements.txt.
+- **Java Not Installed:** Some machine learning libraries like XGBoost require Java. Ensure JDK 8 or higher is installed and JAVA_HOME is set correctly.
+- **Port Already in Use:** If http://127.0.0.1:8050/ is not accessible, ensure no other application is using port 8050 or modify the port in app.py.
+- **Data Format Issues:** Ensure the uploaded CSV contains the required columns, especially the target variable Item_Outlet_Sales.
+- For any other issues in running the application, please reach out to Ayman Ahmad (ahmad.ay@northeastern.edu).
 
 ## Contact
 For assistance, contact ahmad.ay@northeastern.edu
